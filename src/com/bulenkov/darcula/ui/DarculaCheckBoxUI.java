@@ -29,13 +29,19 @@ import javax.swing.plaf.basic.BasicHTML;
 import javax.swing.plaf.metal.MetalCheckBoxUI;
 import javax.swing.text.View;
 import java.awt.*;
+import java.beans.PropertyChangeListener;
 
+import static com.bulenkov.darcula.DarculaUIUtil.getScale;
 import static com.bulenkov.darcula.ui.DarculaButtonUI.isIndeterminate;
 
 /**
  * @author Konstantin Bulenkov
  */
 public class DarculaCheckBoxUI extends MetalCheckBoxUI {
+
+  private float scale = 1f;
+  private PropertyChangeListener sizeVariantListener = evt -> scale = DarculaUIUtil.getScale((JComponent) evt.getSource());
+
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   public static ComponentUI createUI(JComponent c) {
     if (UIUtil.getParentOfType(CellRendererPane.class, c) != null) {
@@ -45,15 +51,31 @@ public class DarculaCheckBoxUI extends MetalCheckBoxUI {
   }
 
   @Override
-  public synchronized void paint(Graphics g2d, JComponent c) {
-    Graphics2D g = (Graphics2D)g2d;
+  protected void installListeners(final AbstractButton b) {
+    super.installListeners(b);
+    b.addPropertyChangeListener("JComponent.sizeVariant", sizeVariantListener);
+    this.scale = getScale(b);
+  }
+
+  @Override
+  protected void uninstallListeners(final AbstractButton b) {
+    b.removePropertyChangeListener("JComponent.sizeVariant", sizeVariantListener);
+    super.uninstallListeners(b);
+  }
+
+  @Override
+  public synchronized void paint(Graphics g, JComponent c) {
+    Graphics2D g2d = (Graphics2D)g.create();
+    g2d.scale(scale, scale);
+
     JCheckBox b = (JCheckBox) c;
     final ButtonModel model = b.getModel();
-    final Dimension size = c.getSize();
+    final Dimension s = c.getSize();
+    final Dimension size = new Dimension((int)(s.width/scale), (int)(s.height/scale));
     final Font font = c.getFont();
 
-    g.setFont(font);
-    FontMetrics fm = SwingUtilities2.getFontMetrics(c, g, font);
+    g2d.setFont(font);
+    FontMetrics fm = SwingUtilities2.getFontMetrics(c, g2d, font);
 
     Rectangle viewRect = new Rectangle(size);
     Rectangle iconRect = new Rectangle();
@@ -65,6 +87,7 @@ public class DarculaCheckBoxUI extends MetalCheckBoxUI {
     viewRect.width -= (i.right + viewRect.x);
     viewRect.height -= (i.bottom + viewRect.y);
 
+    final int scaleFactor = DarculaUIUtil.getScaleFactor();
     String text = SwingUtilities.layoutCompoundLabel(c, fm, b.getText(), getDefaultIcon(),
                                                      b.getVerticalAlignment(), b.getHorizontalAlignment(),
                                                      b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
@@ -72,67 +95,67 @@ public class DarculaCheckBoxUI extends MetalCheckBoxUI {
 
     //background
     if (c.isOpaque()) {
-      g.setColor(b.getBackground());
-      g.fillRect(0, 0, size.width, size.height);
+      g2d.setColor(b.getBackground());
+      g2d.fillRect(0, 0, size.width, size.height);
     }
 
     if (b.isSelected() && b.getSelectedIcon() != null) {
-      b.getSelectedIcon().paintIcon(b, g, iconRect.x + 4, iconRect.y + 2);
+      b.getSelectedIcon().paintIcon(b, g2d, iconRect.x + 4, iconRect.y + 2);
     } else if (!b.isSelected() && b.getIcon() != null) {
-      b.getIcon().paintIcon(b, g, iconRect.x + 4, iconRect.y + 2);
+      b.getIcon().paintIcon(b, g2d, iconRect.x + 4, iconRect.y + 2);
     } else {
-      final int x = iconRect.x + 3;
-      final int y = iconRect.y + 3;
-      final int w = iconRect.width - 6;
-      final int h = iconRect.height - 6;
+      final int x = iconRect.x + 3 * scaleFactor;
+      final int y = iconRect.y + 3 * scaleFactor;
+      final int w = iconRect.width - 6 * scaleFactor;
+      final int h = iconRect.height - 6 * scaleFactor;
 
-      g.translate(x, y);
+      g2d.translate(x, y);
       final Paint paint = new GradientPaint(w / 2, 0, b.getBackground().brighter(),
                                                     w / 2, h, b.getBackground());
-      g.setPaint(paint);
-      g.fillRect(1, 1, w - 2, h - 2);
+      g2d.setPaint(paint);
+      g2d.fillRect(1, 1, w - 2, h - 2);
 
       //setup AA for lines
-      final GraphicsConfig config = new GraphicsConfig(g);
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_DEFAULT);
+      final GraphicsConfig config = new GraphicsConfig(g2d);
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_DEFAULT);
 
       final boolean armed = b.getModel().isArmed();
 
       if (c.hasFocus()) {
-        g.setPaint(new GradientPaint(w/2, 1, getFocusedBackgroundColor1(armed), w/2, h, getFocusedBackgroundColor2(armed)));
-        g.fillRoundRect(0, 0, w - 2, h - 2, 4, 4);
+        g2d.setPaint(new GradientPaint(w/2, 1, getFocusedBackgroundColor1(armed), w/2, h, getFocusedBackgroundColor2(armed)));
+        g2d.fillRoundRect(0, 0, w - 2, h - 2, 4 * scaleFactor, 4 * scaleFactor);
 
-        DarculaUIUtil.paintFocusRing(g, 1, 1, w - 2, h - 2);
+        DarculaUIUtil.paintFocusRing(g2d, 1, 1, w - 2, h - 2);
       } else {
-        g.setPaint(new GradientPaint(w / 2, 1, getBackgroundColor1(), w / 2, h, getBackgroundColor2()));
-        g.fillRoundRect(0, 0, w, h - 1 , 4, 4);
+        g2d.setPaint(new GradientPaint(w / 2, 1, getBackgroundColor1(), w / 2, h, getBackgroundColor2()));
+        g2d.fillRoundRect(0, 0, w, h - 1 , 4 * scaleFactor, 4 * scaleFactor);
 
-        g.setPaint(new GradientPaint(w / 2, 1, getBorderColor1(b.isEnabled()), w / 2, h, getBorderColor2(b.isEnabled())));
-        g.drawRoundRect(0, (UIUtil.isUnderDarcula() ? 1 : 0), w, h - 1, 4, 4);
+        g2d.setPaint(new GradientPaint(w / 2, 1, getBorderColor1(b.isEnabled()), w / 2, h, getBorderColor2(b.isEnabled())));
+        g2d.drawRoundRect(0, (UIUtil.isUnderDarcula() ? 1 : 0), w, h - 1, 4 * scaleFactor, 4 * scaleFactor);
 
-        g.setPaint(getInactiveFillColor());
-        g.drawRoundRect(0, 0, w, h - 1, 4, 4);
+        g2d.setPaint(getInactiveFillColor());
+        g2d.drawRoundRect(0, 0, w, h - 1, 4 * scaleFactor, 4 * scaleFactor);
       }
 
       if (isIndeterminate(c) && b.getModel().isSelected()) {
-        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g.setStroke(new BasicStroke(1 *2.0f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-        g.setPaint(getShadowColor(b.isEnabled()));
-        g.drawLine(4, 8, w-4, 8);
-        g.setPaint(getCheckSignColor(b.isEnabled()));
-        g.drawLine(4, 6, w-4, 6);
+        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        g2d.setStroke(new BasicStroke(1*2.0f*scaleFactor, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+        g2d.setPaint(getShadowColor(b.isEnabled()));
+        g2d.drawLine(4 * scaleFactor, 8 * scaleFactor, w-4 * scaleFactor, 8 * scaleFactor);
+        g2d.setPaint(getCheckSignColor(b.isEnabled()));
+        g2d.drawLine(4 * scaleFactor, 6 * scaleFactor, w-4 * scaleFactor, 6 * scaleFactor);
       } else if (b.getModel().isSelected()) {
-        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g.setStroke(new BasicStroke(1 *2.0f, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
-        g.setPaint(getShadowColor(b.isEnabled()));
-        g.drawLine(4, 7, 7, 11);
-        g.drawLine(7, 11, w, 2);
-        g.setPaint(getCheckSignColor(b.isEnabled()));
-        g.drawLine(4, 5, 7, 9);
-        g.drawLine(7, 9, w, 0);
+        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        g2d.setStroke(new BasicStroke(1 *2.0f*scaleFactor, BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+        g2d.setPaint(getShadowColor(b.isEnabled()));
+        g2d.drawLine(4 * scaleFactor, 7 * scaleFactor, 7 * scaleFactor, 11 * scaleFactor);
+        g2d.drawLine(7 * scaleFactor, 11 * scaleFactor, w, 2 * scaleFactor);
+        g2d.setPaint(getCheckSignColor(b.isEnabled()));
+        g2d.drawLine(4 * scaleFactor, 5 * scaleFactor, 7 * scaleFactor, 9 * scaleFactor);
+        g2d.drawLine(7 * scaleFactor, 9 * scaleFactor, w, 0);
       }
-      g.translate(-x, -y);
+      g2d.translate(-x, -y);
       config.restore();
     }
 
@@ -140,10 +163,10 @@ public class DarculaCheckBoxUI extends MetalCheckBoxUI {
     if(text != null) {
       View view = (View) c.getClientProperty(BasicHTML.propertyKey);
       if (view != null) {
-        view.paint(g, textRect);
+        view.paint(g2d, textRect);
       } else {
-        g.setColor(model.isEnabled() ? b.getForeground() : getDisabledTextColor());
-        SwingUtilities2.drawStringUnderlineCharAt(c, g, text,
+        g2d.setColor(model.isEnabled() ? b.getForeground() : getDisabledTextColor());
+        SwingUtilities2.drawStringUnderlineCharAt(c, g2d, text,
                                                   b.getDisplayedMnemonicIndex(),
                                                   textRect.x,
                                                   textRect.y + fm.getAscent());
@@ -200,6 +223,6 @@ public class DarculaCheckBoxUI extends MetalCheckBoxUI {
 
   @Override
   public Icon getDefaultIcon() {
-    return new IconUIResource(EmptyIcon.create(20));
+    return new IconUIResource(EmptyIcon.create((int)(20 * scale * DarculaUIUtil.getScaleFactor() + 0.5f)));
   }
 }

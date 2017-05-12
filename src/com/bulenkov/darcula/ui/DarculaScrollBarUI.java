@@ -15,6 +15,7 @@
  */
 package com.bulenkov.darcula.ui;
 
+import com.bulenkov.darcula.DarculaUIUtil;
 import com.bulenkov.darcula.util.Animator;
 import com.bulenkov.iconloader.util.DoubleColor;
 import com.bulenkov.iconloader.util.Gray;
@@ -237,7 +238,7 @@ public class DarculaScrollBarUI extends BasicScrollBarUI {
   }
 
   protected int getThickness() {
-    return 13;
+    return 13 * DarculaUIUtil.getScaleFactor();
   }
 
   @Override
@@ -300,7 +301,7 @@ public class DarculaScrollBarUI extends BasicScrollBarUI {
     final Stroke stroke = g.getStroke();
     g.setStroke(BORDER_STROKE);
     g.setColor(getGradientThumbBorderColor());
-    g.drawRoundRect(hGap, vGap, w, h, 3, 3);
+    g.drawRoundRect(hGap, vGap, w, h, 3 * DarculaUIUtil.getScaleFactor(), 3 * DarculaUIUtil.getScaleFactor());
     g.setStroke(stroke);
   }
 

@@ -28,6 +28,7 @@ public class DarculaUIUtil {
   public static final boolean USE_QUARTZ = "true".equals(System.getProperty("apple.awt.graphics.UseQuartz"));
   public static final String MAC_FILL_BORDER = "MAC_FILL_BORDER";
   public static final int MAC_COMBO_BORDER_V_OFFSET = SystemInfo.isMacOSLion ? 1 : 0;
+  private static final int WINDOWS_SCALE_FACTOR = Math.max(1, Toolkit.getDefaultToolkit().getScreenResolution() / 72);
   private static Cursor INVERTED_TEXT_CURSOR;
 
   public static void paintFocusRing(Graphics g, int x, int y, int width, int height) {
@@ -167,6 +168,30 @@ public class DarculaUIUtil {
 
   public static Icon getTreeSelectedExpandedIcon() {
     return getTreeExpandedIcon();
+  }
+
+  public static float getScale(final JComponent c) {
+    final float scale;
+    final Object sizeVariant = c.getClientProperty("JComponent.sizeVariant");
+    if ("small".equals(sizeVariant)) {
+      scale = 0.9f;
+    } else if ("mini".equals(sizeVariant)) {
+      scale = 0.8f;
+    } else {
+      scale = 1f;
+    }
+    return scale;
+  }
+
+  /**
+   * Scale factor that components should be made bigger to appear normal on
+   * Windows HiDPI displays. This is needed because current Java 8 (as of u72)
+   * behaves differently than macOS. It uses screen, not virtual coordinates.
+   *
+   * @return scale factor
+   */
+  public static int getScaleFactor() {
+    return SystemInfo.isWindows ? WINDOWS_SCALE_FACTOR : 1;
   }
 
 }

@@ -26,26 +26,49 @@ import javax.swing.plaf.basic.BasicHTML;
 import javax.swing.plaf.metal.MetalRadioButtonUI;
 import javax.swing.text.View;
 import java.awt.*;
+import java.beans.PropertyChangeListener;
+
+import static com.bulenkov.darcula.DarculaUIUtil.getScale;
 
 /**
  * @author Konstantin Bulenkov
  */
 public class DarculaRadioButtonUI extends MetalRadioButtonUI {
+
+  private float scale = 1f;
+  private PropertyChangeListener sizeVariantListener = evt -> scale = DarculaUIUtil.getScale((JComponent) evt.getSource());
+
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   public static ComponentUI createUI(JComponent c) {
     return new DarculaRadioButtonUI();
   }
 
   @Override
-  public synchronized void paint(Graphics g2d, JComponent c) {
-    Graphics2D g = (Graphics2D)g2d;
+  protected void installListeners(final AbstractButton b) {
+    super.installListeners(b);
+    b.addPropertyChangeListener("JComponent.sizeVariant", sizeVariantListener);
+    this.scale = getScale(b);
+  }
+
+  @Override
+  protected void uninstallListeners(final AbstractButton b) {
+    b.removePropertyChangeListener("JComponent.sizeVariant", sizeVariantListener);
+    super.uninstallListeners(b);
+  }
+
+  @Override
+  public synchronized void paint(Graphics g, JComponent c) {
+    Graphics2D g2d = (Graphics2D)g.create();
+    g2d.scale(scale, scale);
+
     AbstractButton b = (AbstractButton) c;
     ButtonModel model = b.getModel();
 
-    Dimension size = c.getSize();
+    final Dimension s = c.getSize();
+    final Dimension size = new Dimension((int)(s.width/scale), (int)(s.height/scale));
     Font f = c.getFont();
-    g.setFont(f);
-    FontMetrics fm = SwingUtilities2.getFontMetrics(c, g, f);
+    g2d.setFont(f);
+    FontMetrics fm = SwingUtilities2.getFontMetrics(c, g2d, f);
 
     Rectangle viewRect = new Rectangle(size);
     Rectangle iconRect = new Rectangle();
@@ -66,75 +89,76 @@ public class DarculaRadioButtonUI extends MetalRadioButtonUI {
 
     // fill background
     if(c.isOpaque()) {
-      g.setColor(b.getBackground());
-      g.fillRect(0,0, size.width, size.height);
+      g2d.setColor(b.getBackground());
+      g2d.fillRect(0,0, size.width, size.height);
     }
 
-    int rad = 5;
+    final int scaleFactor = DarculaUIUtil.getScaleFactor();
+    int rad = 5 * scaleFactor;
 
     // Paint the radio button
     final int x = iconRect.x + (rad-1)/2;
     final int y = iconRect.y + (rad-1)/2;
-    final int w = iconRect.width - (rad + 5) / 2;
-    final int h = iconRect.height - (rad + 5) / 2;
+    final int w = iconRect.width - (rad + 5 * scaleFactor) / 2;
+    final int h = iconRect.height - (rad + 5 * scaleFactor) / 2;
 
-    g.translate(x, y);
+    g2d.translate(x, y);
 
     //setup AA for lines
-    final GraphicsConfig config = GraphicsUtil.setupAAPainting(g);
+    final GraphicsConfig config = GraphicsUtil.setupAAPainting(g2d);
     final boolean focus = b.hasFocus();
-    g.setPaint(new GradientPaint(0, 0, ColorUtil.shift(c.getBackground(), 1.5),
+    g2d.setPaint(new GradientPaint(0, 0, ColorUtil.shift(c.getBackground(), 1.5),
         0, c.getHeight(), ColorUtil.shift(c.getBackground(), 1.2)));
     if (focus) {
-      g.fillOval(0, 1, w, h);
+      g2d.fillOval(0, 1, w, h);
     } else {
-      g.fillOval(0, 1, w - 1, h - 1);
+      g2d.fillOval(0, 1, w - 1, h - 1);
     }
 
     if (focus) {
       if (UIUtil.isRetina()) {
-        DarculaUIUtil.paintFocusOval(g, 1, 2, w - 2, h - 2);
+        DarculaUIUtil.paintFocusOval(g2d, 1, 2, w - 2, h - 2);
       } else {
-        DarculaUIUtil.paintFocusOval(g, 0, 1, w, h);
+        DarculaUIUtil.paintFocusOval(g2d, 0, 1, w, h);
       }
     } else {
       if (UIUtil.isUnderDarcula()) {
-        g.setPaint(new GradientPaint(w / 2, 1, Gray._160.withAlpha(90), w / 2, h, Gray._100.withAlpha(90)));
-        g.drawOval(0, 2, w - 1, h - 1);
+        g2d.setPaint(new GradientPaint(w / 2, 1, Gray._160.withAlpha(90), w / 2, h, Gray._100.withAlpha(90)));
+        g2d.drawOval(0, 2, w - 1, h - 1);
 
-        g.setPaint(Gray._40.withAlpha(200));
-        g.drawOval(0, 1, w - 1, h - 1);
+        g2d.setPaint(Gray._40.withAlpha(200));
+        g2d.drawOval(0, 1, w - 1, h - 1);
       } else {
-        g.setPaint(b.isEnabled() ? Gray._30 : Gray._130);
-        g.drawOval(0, 1, w - 1, h - 1);
+        g2d.setPaint(b.isEnabled() ? Gray._30 : Gray._130);
+        g2d.drawOval(0, 1, w - 1, h - 1);
       }
     }
 
     if (b.isSelected()) {
       final boolean enabled = b.isEnabled();
-      g.setColor(UIManager.getColor(enabled ? "RadioButton.darcula.selectionEnabledShadowColor" : "RadioButton.darcula.selectionDisabledShadowColor"));// ? Gray._30 : Gray._60);
-      g.fillOval(w/2 - rad/2, h/2 , rad, rad);
-      g.setColor(UIManager.getColor(enabled ? "RadioButton.darcula.selectionEnabledColor" : "RadioButton.darcula.selectionDisabledColor")); //Gray._170 : Gray._120);
-      g.fillOval(w/2 - rad/2, h/2 - 1, rad, rad);
+      g2d.setColor(UIManager.getColor(enabled ? "RadioButton.darcula.selectionEnabledShadowColor" : "RadioButton.darcula.selectionDisabledShadowColor"));// ? Gray._30 : Gray._60);
+      g2d.fillOval(w/2 - rad/2, h/2 - rad/2 + 1, rad, rad);
+      g2d.setColor(UIManager.getColor(enabled ? "RadioButton.darcula.selectionEnabledColor" : "RadioButton.darcula.selectionDisabledColor")); //Gray._170 : Gray._120);
+      g2d.fillOval(w/2 - rad/2, h/2 - rad/2, rad, rad);
     }
     config.restore();
-    g.translate(-x, -y);
+    g2d.translate(-x, -y);
 
     // Draw the Text
     if(text != null) {
       View v = (View) c.getClientProperty(BasicHTML.propertyKey);
       if (v != null) {
-        v.paint(g, textRect);
+        v.paint(g2d, textRect);
       } else {
         int mnemIndex = b.getDisplayedMnemonicIndex();
         if(model.isEnabled()) {
           // *** paint the text normally
-          g.setColor(b.getForeground());
+          g2d.setColor(b.getForeground());
         } else {
           // *** paint the text disabled
-          g.setColor(getDisabledTextColor());
+          g2d.setColor(getDisabledTextColor());
         }
-        SwingUtilities2.drawStringUnderlineCharAt(c, g, text,
+        SwingUtilities2.drawStringUnderlineCharAt(c, g2d, text,
                                                   mnemIndex, textRect.x, textRect.y + fm.getAscent());
       }
     }
@@ -142,6 +166,6 @@ public class DarculaRadioButtonUI extends MetalRadioButtonUI {
 
   @Override
   public Icon getDefaultIcon() {
-    return new IconUIResource(EmptyIcon.create(20));
+    return new IconUIResource(EmptyIcon.create((int)(20 * scale * DarculaUIUtil.getScaleFactor() + 0.5f)));
   }
 }

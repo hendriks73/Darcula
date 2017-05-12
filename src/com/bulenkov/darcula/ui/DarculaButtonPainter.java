@@ -24,6 +24,8 @@ import javax.swing.plaf.InsetsUIResource;
 import javax.swing.plaf.UIResource;
 import java.awt.*;
 
+import static com.bulenkov.darcula.DarculaUIUtil.getScaleFactor;
+
 /**
  * @author Konstantin Bulenkov
  */
@@ -37,6 +39,8 @@ public class DarculaButtonPainter implements Border, UIResource {
     final int yOff = (ins.top + ins.bottom) / 4;
     final boolean square = DarculaButtonUI.isSquare(c);
     int offset = square ? 1 : getOffset();
+    final int scaleFactor = getScaleFactor();
+    offset *= scaleFactor;
     if (c.hasFocus()) {
       DarculaUIUtil.paintFocusRing(g2d, offset, yOff, width - 2 * offset, height - 2 * yOff);
     } else {
@@ -55,10 +59,11 @@ public class DarculaButtonPainter implements Border, UIResource {
 
   @Override
   public Insets getBorderInsets(Component c) {
+    final int scaleFactor = getScaleFactor();
     if (DarculaButtonUI.isSquare(c)) {
-      return new InsetsUIResource(2, 0, 2, 0);
+      return new InsetsUIResource(2 * scaleFactor, 0, 2 * scaleFactor, 0);
     }
-    return new InsetsUIResource(8, 16, 8, 14);
+    return new InsetsUIResource(8 * scaleFactor, 16 * scaleFactor, 8 * scaleFactor, 14 * scaleFactor);
   }
 
   protected int getOffset() {
