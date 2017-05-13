@@ -85,14 +85,15 @@ public class DarculaComboBoxUI extends BasicComboBoxUI implements Border {
         final int xU = w / 4;
         final int yU = h / 4;
         final Path2D.Double path = new Path2D.Double();
-        g.translate(2, 0);
+        final int scaleFactor = DarculaUIUtil.getScaleFactor();
+        g.translate(2*scaleFactor, 0);
         path.moveTo(xU + 1, yU + 2);
         path.lineTo(3 * xU + 1, yU + 2);
         path.lineTo(2 * xU + 1, 3 * yU);
         path.lineTo(xU + 1, yU + 2);
         path.closePath();
         g.fill(path);
-        g.translate(-2, 0);
+        g.translate(-2*scaleFactor, 0);
         if (!isTableCellEditor(myComboBox)) {
           g.setColor(getArrowButtonFillColor(getBorderColor()));
           g.drawLine(0, -1, 0, h);
@@ -102,7 +103,8 @@ public class DarculaComboBoxUI extends BasicComboBoxUI implements Border {
 
       @Override
       public Dimension getPreferredSize() {
-        int size = getFont().getSize() + 4;
+        final int scaleFactor = DarculaUIUtil.getScaleFactor();
+        int size = getFont().getSize() + 4 * scaleFactor;
         if (size%2==1) size++;
         return new DimensionUIResource(size, size);
       }
@@ -120,7 +122,8 @@ public class DarculaComboBoxUI extends BasicComboBoxUI implements Border {
 
   @Override
   protected Insets getInsets() {
-    return new InsetsUIResource(4, 7, 4, 5);
+    final int scaleFactor = DarculaUIUtil.getScaleFactor();
+    return new InsetsUIResource(4 * scaleFactor, 7 * scaleFactor, 4 * scaleFactor, 5 * scaleFactor);
   }
 
   protected Dimension getSizeForComponent(Component comp) {
@@ -264,6 +267,7 @@ public class DarculaComboBoxUI extends BasicComboBoxUI implements Border {
     if (comboBox == null || arrowButton == null) {
       return; //NPE on LaF change
     }
+    final int scaleFactor = DarculaUIUtil.getScaleFactor();
 
     hasFocus = false;
     checkFocus();
@@ -276,16 +280,16 @@ public class DarculaComboBoxUI extends BasicComboBoxUI implements Border {
     if (editor != null && comboBox.isEditable()) {
       ((JComponent)editor).setBorder(null);
       g.setColor(editor.getBackground());
-      g.fillRoundRect(x + 1, y + 1, width - 2, height - 4, 5, 5);
+      g.fillRoundRect(x + 1, y + 1, width - 2, height - 4, 5 * scaleFactor, 5 * scaleFactor);
       g.setColor(getArrowButtonFillColor(arrowButton.getBackground()));
-      g.fillRoundRect(xxx, y + 1, width - xxx, height - 4, 5, 5);
+      g.fillRoundRect(xxx, y + 1, width - xxx, height - 4, 5 * scaleFactor, 5 * scaleFactor);
       g.setColor(editor.getBackground());
       g.fillRect(xxx, y + 1, 5, height - 4);
     } else {
       g.setColor(UIUtil.getPanelBackground());
-      g.fillRoundRect(x + 1, y + 1, width - 2, height - 4, 5, 5);
+      g.fillRoundRect(x + 1, y + 1, width - 2, height - 4, 5 * scaleFactor, 5 * scaleFactor);
       g.setColor(getArrowButtonFillColor(arrowButton.getBackground()));
-      g.fillRoundRect(xxx, y + 1, width - xxx, height - 4, 5, 5);
+      g.fillRoundRect(xxx, y + 1, width - xxx, height - 4, 5 * scaleFactor, 5 * scaleFactor);
       g.setColor(UIUtil.getPanelBackground());
       g.fillRect(xxx, y + 1, 5, height - 4);
     }
@@ -303,7 +307,7 @@ public class DarculaComboBoxUI extends BasicComboBoxUI implements Border {
     }
     else {
       g.setColor(borderColor);
-      g.drawRoundRect(1, 1, width - 2, height - 4, 5, 5);
+      g.drawRoundRect(1, 1, width - 2, height - 4, 5 * scaleFactor, 5 * scaleFactor);
     }
     config.restore();
   }
@@ -330,7 +334,8 @@ public class DarculaComboBoxUI extends BasicComboBoxUI implements Border {
 
   @Override
   public Insets getBorderInsets(Component c) {
-    return new InsetsUIResource(4, 7, 4, 5);
+    final int scaleFactor = DarculaUIUtil.getScaleFactor();
+    return new InsetsUIResource(4*scaleFactor, 7*scaleFactor, 4*scaleFactor, 5*scaleFactor);
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.bulenkov.darcula.ui;
 
+import com.bulenkov.darcula.DarculaUIUtil;
 import com.bulenkov.iconloader.util.*;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.DimensionUIResource;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicSpinnerUI;
@@ -81,7 +83,8 @@ public class DarculaSpinnerUI extends BasicSpinnerUI {
   protected Component createPreviousButton() {
     JButton button = createArrow(SwingConstants.SOUTH);
     button.setName("Spinner.previousButton");
-    button.setBorder(new EmptyBorder(1, 1, 1, 1));
+    final int scaleFactor = DarculaUIUtil.getScaleFactor();
+    button.setBorder(new EmptyBorder(scaleFactor, scaleFactor, scaleFactor, scaleFactor));
     installPreviousButtonListeners(button);
     return button;
   }
@@ -90,7 +93,8 @@ public class DarculaSpinnerUI extends BasicSpinnerUI {
   protected Component createNextButton() {
     JButton button = createArrow(SwingConstants.NORTH);
     button.setName("Spinner.nextButton");
-    button.setBorder(new EmptyBorder(1, 1, 1, 1));
+    final int scaleFactor = DarculaUIUtil.getScaleFactor();
+    button.setBorder(new EmptyBorder(scaleFactor, scaleFactor, scaleFactor, scaleFactor));
     installNextButtonListeners(button);
     return button;
   }
@@ -105,7 +109,8 @@ public class DarculaSpinnerUI extends BasicSpinnerUI {
         final JComponent editor = spinner.getEditor();
         if (editor != null) {
           final Rectangle bounds = editor.getBounds();
-          editor.setBounds(bounds.x, bounds.y, bounds.width - 6, bounds.height);
+          final int scaleFactor = DarculaUIUtil.getScaleFactor();
+          editor.setBounds(bounds.x, bounds.y, bounds.width - 6*scaleFactor, bounds.height);
         }
       }
     };
@@ -118,8 +123,9 @@ public class DarculaSpinnerUI extends BasicSpinnerUI {
     JButton b = new BasicArrowButton(direction, shadow, shadow, enabledColor, shadow) {
       @Override
       public void paint(Graphics g) {
-        int y = direction == NORTH ? getHeight() - 6 : 2;
-        paintTriangle(g, (getWidth() - 8)/2 - 1, y, 0, direction, DarculaSpinnerUI.this.spinner.isEnabled());
+        final int scaleFactor = DarculaUIUtil.getScaleFactor();
+        int y = direction == NORTH ? getHeight() - 6*scaleFactor : 2*scaleFactor;
+        paintTriangle(g, (getWidth() - 8*scaleFactor)/2 - 1, y, 0, direction, DarculaSpinnerUI.this.spinner.isEnabled());
       }
 
       @Override
@@ -131,8 +137,9 @@ public class DarculaSpinnerUI extends BasicSpinnerUI {
       public void paintTriangle(Graphics g, int x, int y, int size, int direction, boolean isEnabled) {
         final GraphicsConfig config = GraphicsUtil.setupAAPainting(g);
         int mid;
-        final int w = 8;
-        final int h = 6;
+        final int scaleFactor = DarculaUIUtil.getScaleFactor();
+        final int w = 8*scaleFactor;
+        final int h = 6*scaleFactor;
         mid = w  / 2;
 
         g.setColor(isEnabled ? enabledColor : disabledColor);
@@ -151,6 +158,15 @@ public class DarculaSpinnerUI extends BasicSpinnerUI {
         g.translate(-x, -y);
         config.restore();
       }
+
+      @Override
+      public Dimension getPreferredSize() {
+        final int scaleFactor = DarculaUIUtil.getScaleFactor();
+        final int w = 12*scaleFactor;
+        final int h = 8*scaleFactor;
+        return new DimensionUIResource(w, h);
+      }
+
     };
     Border buttonBorder = UIManager.getBorder("Spinner.arrowButtonBorder");
     if (buttonBorder instanceof UIResource) {
