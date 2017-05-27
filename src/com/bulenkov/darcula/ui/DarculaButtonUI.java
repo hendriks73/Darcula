@@ -129,7 +129,10 @@ public class DarculaButtonUI extends BasicButtonUI {
     }
     config.restore();
 
-    String text = layout(b, SwingUtilities2.getFontMetrics(b, g2d), w, h);
+    final Font f = b.getFont();
+    String text = layout(b, SwingUtilities2.getFontMetrics(b, f.deriveFont(f.getSize2D()*scale)), w, h);
+    textRect.x *= scale;
+    textRect.y *= scale;
 
     clearTextShiftOffset();
 
