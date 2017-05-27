@@ -138,12 +138,16 @@ public class DarculaTextFieldUI extends BasicTextFieldUI {
 
   protected Point getSearchIconCoord() {
     final Rectangle r = getDrawingRect();
-    return new Point(r.x + 3, r.y + (r.height - 16) / 2 + 1);
+    final int topInset = (r.height - 16) / 2 + 1;
+    final int rightInset = Math.max(3, topInset);;
+    return new Point(r.x + rightInset, r.y + topInset);
   }
 
   protected Point getClearIconCoord() {
     final Rectangle r = getDrawingRect();
-    return new Point(r.x + r.width - 16 - 1, r.y + (r.height - 16) / 2);
+    final int topInset = (r.height - 16) / 2;
+    final int rightInset = Math.max(1, topInset);
+    return new Point(r.x + r.width - 16 - rightInset, r.y + topInset);
   }
 
   @Override
@@ -180,7 +184,7 @@ public class DarculaTextFieldUI extends BasicTextFieldUI {
         searchIcon = IconLoader.findIcon("/com/bulenkov/darcula/icons/search.png", DarculaTextFieldUI.class, true);
       }
       searchIcon.paintIcon(null, g, p.x, p.y);
-      if (getComponent().hasFocus() && getComponent().getText().length() > 0) {
+      if (getComponent().getText().length() > 0) {
         p = getClearIconCoord();
         Icon clearIcon = UIManager.getIcon("TextField.darcula.clear.icon");
         if (clearIcon == null) {
