@@ -16,6 +16,8 @@
 
 package com.bulenkov.darcula.ui;
 
+import com.bulenkov.darcula.DarculaUIUtil;
+
 import javax.swing.plaf.BorderUIResource;
 
 /**
@@ -23,6 +25,6 @@ import javax.swing.plaf.BorderUIResource;
  */
 public class DarculaMenuItemBorder extends BorderUIResource.EmptyBorderUIResource {
   public DarculaMenuItemBorder() {
-    super(2, 2, 2, 2);
+    super(2 * DarculaUIUtil.getScaleFactor(), 2 * DarculaUIUtil.getScaleFactor(), 2 * DarculaUIUtil.getScaleFactor(), 2 * DarculaUIUtil.getScaleFactor());
   }
 }
