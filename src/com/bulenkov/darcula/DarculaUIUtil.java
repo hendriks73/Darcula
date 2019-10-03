@@ -191,7 +191,11 @@ public class DarculaUIUtil {
    * @return scale factor
    */
   public static int getScaleFactor() {
-    return SystemInfo.isWindows ? WINDOWS_SCALE_FACTOR : 1;
+    if (SystemInfo.isJavaVersionAtLeast("11.0.0")) {
+      return 1;
+    } else {
+      return SystemInfo.isWindows ? WINDOWS_SCALE_FACTOR : 1;
+    }
   }
 
 }
